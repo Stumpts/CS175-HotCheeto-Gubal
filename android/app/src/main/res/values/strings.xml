@@ -7,4 +7,15 @@
     <string name="password_field_hint">Enter password</string>
     <string name="username_field_hint">Enter username</string>
     <string name="login_image_content_description">App Logo</string>
+    <string name="open_rfid_scanner">Scan RFID Tag</string>
+    <string name="rfid_scanner_title">RFID Scanner</string>
+    <string name="back_to_catalog">Back</string>
+    <string name="rfid_ready_title">Ready to Scan RFID Tag</string>
+    <string name="rfid_ready_subtitle">Hold the back of your phone near a book\'s RFID tag.</string>
+    <string name="rfid_disabled_title">NFC / RFID Reader Disabled</string>
+    <string name="rfid_disabled_subtitle">Enable NFC in your device settings or use manual/demo tag lookup below.</string>
+    <string name="rfid_no_hardware_title">RFID Demo / Manual Mode</string>
+    <string name="rfid_no_hardware_subtitle">No built-in NFC/RFID hardware detected. Enter or tap a book tag below to scan.</string>
+    <string name="manual_tag_hint">Enter Tag UID (e.g. E0:04:01:00:1A:2B)</string>
+    <string name="read_tag_button">Read Tag</string>
 </resources>
