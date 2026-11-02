@@ -1,5 +1,6 @@
 package com.example.hclibrary
 
+import android.content.Intent
 import android.os.Bundle
 import android.graphics.drawable.GradientDrawable
 import android.text.Editable
@@ -11,6 +12,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -18,17 +20,39 @@ import androidx.core.content.ContextCompat
 import android.view.ViewGroup
 
 class MainActivity : AppCompatActivity() {
-    // Temporary catalog data until a database is connected.
-    private data class Book(val title: String, val author: String, var available: Boolean)
-
-    private val books = mutableListOf(
-        Book("The Great Gatsby", "F. Scott Fitzgerald", true),
-        Book("To Kill a Mockingbird", "Harper Lee", true),
-        Book("The Hobbit", "J.R.R. Tolkien", false),
-        Book("Pride and Prejudice", "Jane Austen", true),
-        Book("1984", "George Orwell", true),
-        Book("The Alchemist", "Paulo Coelho", false)
+    data class Book(
+        val title: String,
+        val author: String,
+        var available: Boolean,
+        val rfidTag: String
     )
+
+    companion object {
+        // Temporary catalog data until a database is connected.
+        val books = mutableListOf(
+            Book("The Great Gatsby", "F. Scott Fitzgerald", true, "E0:04:01:00:1A:2B"),
+            Book("To Kill a Mockingbird", "Harper Lee", true, "E0:04:01:00:3C:4D"),
+            Book("The Hobbit", "J.R.R. Tolkien", false, "E0:04:01:00:5E:6F"),
+            Book("Pride and Prejudice", "Jane Austen", true, "E0:04:01:00:7A:8B"),
+            Book("1984", "George Orwell", true, "E0:04:01:00:9C:0D"),
+            Book("The Alchemist", "Paulo Coelho", false, "E0:04:01:00:1E:2F")
+        )
+    }
+
+    private val rfidScannerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val searchInput = findViewById<EditText>(R.id.search_input)
+        if (result.resultCode == RESULT_OK) {
+            val queryFromScanner = result.data?.getStringExtra(RfidScannerActivity.EXTRA_SEARCH_QUERY)
+            if (!queryFromScanner.isNullOrEmpty()) {
+                searchInput.setText(queryFromScanner)
+                searchInput.setSelection(queryFromScanner.length)
+                return@registerForActivityResult
+            }
+        }
+        renderBooks(searchInput.text?.toString().orEmpty())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +62,12 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        // Open the RFID Scanner menu when the button is clicked.
+        findViewById<Button>(R.id.open_rfid_scanner_button).setOnClickListener {
+            val intent = Intent(this, RfidScannerActivity::class.java)
+            rfidScannerLauncher.launch(intent)
         }
 
         // Set up the catalog and search input.
@@ -52,6 +82,12 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        val searchInput = findViewById<EditText>(R.id.search_input)
+        renderBooks(searchInput?.text?.toString().orEmpty())
+    }
+
     private fun renderBooks(query: String) {
         // Display books matching the search query.
         val list = findViewById<LinearLayout>(R.id.book_list)
@@ -59,7 +95,7 @@ class MainActivity : AppCompatActivity() {
         list.removeAllViews()
         val normalized = query.trim().lowercase()
         val filtered = books.filter {
-            "${it.title} ${it.author}".lowercase().contains(normalized)
+            "${it.title} ${it.author} ${it.rfidTag}".lowercase().contains(normalized)
         }
 
         emptyState.visibility = if (filtered.isEmpty()) View.VISIBLE else View.GONE
@@ -86,7 +122,7 @@ class MainActivity : AppCompatActivity() {
                 setTypeface(null, android.graphics.Typeface.BOLD)
             }
             val author = TextView(this).apply {
-                text = book.author
+                text = "${book.author} • RFID: ${book.rfidTag}"
                 textSize = 14f
                 setTextColor(ContextCompat.getColor(this@MainActivity, R.color.muted_text))
                 setPadding(0, 6, 0, 14)
@@ -105,11 +141,10 @@ class MainActivity : AppCompatActivity() {
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
             val button = Button(this).apply {
-                text = if (book.available) "Check Out" else "Unavailable"
-                isEnabled = book.available
+                text = if (book.available) "Check Out" else "Check In"
                 setOnClickListener {
-                    // Mark the selected book as checked out.
-                    book.available = false
+                    // Toggle the selected book between checked out and checked in.
+                    book.available = !book.available
                     renderBooks(query)
                 }
             }
