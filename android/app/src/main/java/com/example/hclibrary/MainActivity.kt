@@ -9,14 +9,18 @@ import android.view.Gravity
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.navigation.NavigationView
 import android.view.ViewGroup
 
 class MainActivity : AppCompatActivity() {
@@ -62,6 +66,39 @@ class MainActivity : AppCompatActivity() {
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
+        }
+
+        // Set up the right-side navigation drawer and menu button.
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        val menuButton = findViewById<ImageButton>(R.id.menu_button)
+        val catalogContainer = findViewById<View>(R.id.catalog_container)
+        val fragmentContainer = findViewById<View>(R.id.fragment_container)
+
+        menuButton.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.END)
+        }
+
+        navView.setNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.nav_search -> {
+                    fragmentContainer.visibility = View.GONE
+                    catalogContainer.visibility = View.VISIBLE
+                    supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
+                        supportFragmentManager.beginTransaction().remove(it).commit()
+                    }
+                }
+                R.id.nav_login -> {
+                    catalogContainer.visibility = View.GONE
+                    fragmentContainer.visibility = View.VISIBLE
+                    supportFragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, LoginFragment())
+                        .commit()
+                }
+            }
+            menuItem.isChecked = true
+            drawerLayout.closeDrawer(GravityCompat.END)
+            true
         }
 
         // Open the RFID Scanner menu when the button is clicked.

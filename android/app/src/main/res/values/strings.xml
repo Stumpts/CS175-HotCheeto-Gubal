@@ -18,4 +18,7 @@
     <string name="rfid_no_hardware_subtitle">No built-in NFC/RFID hardware detected. Enter or tap a book tag below to scan.</string>
     <string name="manual_tag_hint">Enter Tag UID (e.g. E0:04:01:00:1A:2B)</string>
     <string name="read_tag_button">Read Tag</string>
+    <string name="open_menu">Open Menu</string>
+    <string name="menu_item_search">Item Search</string>
+    <string name="menu_login">Log In</string>
 </resources>
