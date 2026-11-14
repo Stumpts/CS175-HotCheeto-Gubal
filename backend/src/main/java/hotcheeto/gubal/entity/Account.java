@@ -15,12 +15,19 @@ public class Account {
     private Long account_id;
 
     @Column(nullable = false)
-    private String name;
+    private String username;
 
     @Column(unique = true)
     private String email;
 
-    enum role {
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    public enum Role {
         EMPLOYEE,
         BORROWER
     }
