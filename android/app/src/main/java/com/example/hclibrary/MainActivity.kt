@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private var loggedInUser: String? = null
+
     private val rfidScannerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -72,8 +75,6 @@ class MainActivity : AppCompatActivity() {
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navView = findViewById<NavigationView>(R.id.nav_view)
         val menuButton = findViewById<ImageButton>(R.id.menu_button)
-        val catalogContainer = findViewById<View>(R.id.catalog_container)
-        val fragmentContainer = findViewById<View>(R.id.fragment_container)
 
         menuButton.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.END)
@@ -82,21 +83,22 @@ class MainActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_search -> {
-                    fragmentContainer.visibility = View.GONE
-                    catalogContainer.visibility = View.VISIBLE
-                    supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
-                        supportFragmentManager.beginTransaction().remove(it).commit()
-                    }
+                    showCatalogPage()
+                    menuItem.isChecked = true
                 }
                 R.id.nav_login -> {
-                    catalogContainer.visibility = View.GONE
-                    fragmentContainer.visibility = View.VISIBLE
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, LoginFragment())
-                        .commit()
+                    if (loggedInUser != null) {
+                        onLogout()
+                    } else {
+                        findViewById<View>(R.id.catalog_container).visibility = View.GONE
+                        findViewById<View>(R.id.fragment_container).visibility = View.VISIBLE
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, LoginFragment())
+                            .commit()
+                        menuItem.isChecked = true
+                    }
                 }
             }
-            menuItem.isChecked = true
             drawerLayout.closeDrawer(GravityCompat.END)
             true
         }
@@ -123,6 +125,33 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         val searchInput = findViewById<EditText>(R.id.search_input)
         renderBooks(searchInput?.text?.toString().orEmpty())
+    }
+
+    fun onLoginSuccess(username: String) {
+        loggedInUser = username
+        findViewById<TextView>(R.id.user_status_text).text = username
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_logout)
+        navView.setCheckedItem(R.id.nav_search)
+        showCatalogPage()
+    }
+
+    private fun onLogout() {
+        loggedInUser = null
+        findViewById<TextView>(R.id.user_status_text).text = "Guest"
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_login)
+        navView.setCheckedItem(R.id.nav_search)
+        showCatalogPage()
+        Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showCatalogPage() {
+        findViewById<View>(R.id.fragment_container).visibility = View.GONE
+        findViewById<View>(R.id.catalog_container).visibility = View.VISIBLE
+        supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
+            supportFragmentManager.beginTransaction().remove(it).commit()
+        }
     }
 
     private fun renderBooks(query: String) {

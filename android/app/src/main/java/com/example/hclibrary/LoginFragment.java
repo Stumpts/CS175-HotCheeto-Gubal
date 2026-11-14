@@ -128,15 +128,20 @@ public class LoginFragment extends Fragment {
                 }
 
                 JSONObject resJson = responseText.isEmpty() ? new JSONObject() : new JSONObject(responseText);
+                boolean isSuccess = responseCode >= 200 && responseCode < 300;
                 String message = resJson.optString(
-                        responseCode >= 200 && responseCode < 300 ? "message" : "error",
+                        isSuccess ? "message" : "error",
                         "Status code: " + responseCode
                 );
+                String returnedUsername = resJson.optString("username", user);
 
                 if (isAdded()) {
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show()
-                    );
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                        if (isSuccess && getActivity() instanceof MainActivity) {
+                            ((MainActivity) getActivity()).onLoginSuccess(returnedUsername);
+                        }
+                    });
                 }
             } catch (Exception e) {
                 if (isAdded()) {
