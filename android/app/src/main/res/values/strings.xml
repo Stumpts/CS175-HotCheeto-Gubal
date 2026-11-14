@@ -21,4 +21,7 @@
     <string name="open_menu">Open Menu</string>
     <string name="menu_item_search">Item Search</string>
     <string name="menu_login">Log In</string>
+    <string name="create_account">Create Account</string>
+    <string name="email_field_hint">Enter email</string>
+    <string name="back_to_login">Back to Login</string>
 </resources>
