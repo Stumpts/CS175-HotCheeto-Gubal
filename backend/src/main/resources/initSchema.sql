@@ -23,14 +23,23 @@ CREATE TABLE Accounts (
     )
 );
 
+CREATE TABLE BookCopies (
+    copy_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    book_id BIGINT NOT NULL REFERENCES Books(book_id),
+    copy_number INT NOT NULL,
+
+    UNIQUE (book_id, copy_number)
+);
+
 CREATE TABLE Borrows (
     checkout_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    book_id BIGINT NOT NULL REFERENCES Books(book_id),
+    copy_id BIGINT NOT NULL REFERENCES BookCopies(copy_id),
     account_id BIGINT NOT NULL REFERENCES Accounts(account_id),
     checkout_date DATE NOT NULL DEFAULT CURRENT_DATE,
     due_date DATE NOT NULL,
     return_date DATE
 );
+
 
 
 COMMIT;
