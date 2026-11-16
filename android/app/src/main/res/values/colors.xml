@@ -2,22 +2,22 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="navy">#FF13233F</color>
-    <color name="blue">#FF2D63D7</color>
-    <color name="page_background">#FFF7F9FC</color>
-    <color name="muted_text">#FF68738A</color>
-    <color name="card_border">#FFE5E9F0</color>
-    <color name="available_green">#FF19724E</color>
+    <color name="navy">#FF1B3B2A</color>
+    <color name="blue">#FF5BB363</color>
+    <color name="page_background">#FFF3F8F1</color>
+    <color name="muted_text">#FF5A6F63</color>
+    <color name="card_border">#FFD5E3D2</color>
+    <color name="available_green">#FF237A36</color>
     <color name="checked_out_orange">#FFB05B35</color>
-    <color name="card_title">#FF13233F</color>
+    <color name="card_title">#FF1B3B2A</color>
     <color name="card_background">#FFFFFFFF</color>
 
 
 
     <!-- palette colors from the logo -->
-    <color name="cyan">#15797a</color>
-    <color name="green">#007230</color>
-    <color name="light_green">#5bb363</color>
+    <color name="cyan">#2F7E7F</color>
+    <color name="green">#237A36</color>
+    <color name="light_green">#9BD653</color>
     <color name="lime_green">#9be492</color>
     <color name="cool_lime_green">#9fe091</color>
     <color name="low_sat_green">#a3c28f</color>

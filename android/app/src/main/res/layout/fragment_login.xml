@@ -1,75 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/page_background"
     tools:context=".LoginFragment">
 
-    <!-- TODO: Update blank fragment layout -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="28dp">
 
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="132dp"
+            android:layout_height="112dp"
+            android:contentDescription="@string/login_image_content_description"
+            android:scaleType="centerInside"
+            android:src="@drawable/icon" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="188dp"
-        android:layout_height="148dp"
-        android:layout_marginTop="84dp"
-        android:contentDescription="@string/login_image_content_description"
-        android:src="@drawable/icon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="Welcome back"
+            android:textColor="@color/navy"
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
-    <EditText
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Sign in to The Great Gubal Library"
+            android:textColor="@color/muted_text"
+            android:textSize="14sp" />
+
+        <EditText
         android:id="@+id/usernameField"
-        android:layout_width="210dp"
-        android:layout_height="44dp"
-        android:layout_marginTop="40dp"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="30dp"
         android:autofillHints="username"
+            android:background="@drawable/bg_input"
         android:hint="@string/username_field_hint"
         android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/editTextTextPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.43" />
+            android:textColor="@color/card_title"
+            android:textColorHint="@color/muted_text" />
 
-    <EditText
+        <EditText
         android:id="@+id/editTextTextPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="14dp"
         android:autofillHints="password"
-        android:ems="10"
-        android:hint="@string/password_field_hint"
-        android:inputType="textPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.497"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/usernameField" />
+            android:background="@drawable/bg_input"
+            android:hint="@string/password_field_hint"
+            android:inputType="textPassword"
+            android:textColor="@color/card_title"
+            android:textColorHint="@color/muted_text" />
 
-    <Button
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:orientation="horizontal">
+
+            <Button
         android:id="@+id/loginButton"
-        android:layout_width="93dp"
-        android:layout_height="42dp"
-        android:layout_marginTop="32dp"
-        android:backgroundTint="@color/cyan"
-        android:text="@string/login_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.191"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editTextTextPassword" />
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/green"
+                android:text="@string/login_button"
+                android:textColor="@color/white"
+                android:textAllCaps="false" />
 
-    <Button
+            <Button
         android:id="@+id/createAccountButton"
-        android:layout_width="wrap_content"
-        android:layout_height="42dp"
-        android:backgroundTint="@color/cyan"
-        android:text="@string/create_account"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/loginButton"
-        app:layout_constraintTop_toTopOf="@+id/loginButton" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/cyan"
+                android:text="@string/create_account"
+                android:textColor="@color/white"
+                android:textAllCaps="false" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
