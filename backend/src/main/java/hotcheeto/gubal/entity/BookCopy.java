@@ -15,12 +15,12 @@ public class BookCopy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String barcode;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
-    private Book book_id;
+    @JoinColumn(nullable = false, name = "book_id")
+    private Book book;
 
     enum availability {
         AVAILABLE,

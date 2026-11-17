@@ -107,19 +107,38 @@
                     android:textColor="@color/white"
                     android:textAllCaps="false" />
 
-                <!-- Search field for book titles and authors. -->
-                <EditText
-                    android:id="@+id/search_input"
+                <!-- Search field and category dropdown for book titles, authors, and ISBN. -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:background="@drawable/bg_input"
-                    android:hint="@string/search_hint"
-                    android:inputType="text"
-                    android:padding="14dp"
-                    android:textColor="@color/card_title"
-                    android:textColorHint="@color/muted_text"
-                    android:singleLine="true" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <Spinner
+                        android:id="@+id/search_category_spinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_input"
+                        android:minHeight="48dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:spinnerMode="dropdown" />
+
+                    <EditText
+                        android:id="@+id/search_input"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_input"
+                        android:hint="@string/search_hint"
+                        android:inputType="text"
+                        android:padding="14dp"
+                        android:textColor="@color/card_title"
+                        android:textColorHint="@color/muted_text"
+                        android:singleLine="true" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"

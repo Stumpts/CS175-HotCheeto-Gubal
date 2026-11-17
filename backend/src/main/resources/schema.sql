@@ -20,9 +20,7 @@ CREATE TABLE Accounts (
 CREATE TABLE BookCopies (
     copy_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     book_id BIGINT NOT NULL REFERENCES Books(book_id),
-    copy_number INT NOT NULL,
-
-    UNIQUE (book_id, copy_number)
+    barcode VARCHAR(20) NOT NULL UNIQUE
 );
 
 CREATE TABLE Borrows (
