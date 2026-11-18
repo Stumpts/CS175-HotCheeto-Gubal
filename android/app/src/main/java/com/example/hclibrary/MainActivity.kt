@@ -108,6 +108,18 @@ class MainActivity : AppCompatActivity() {
                         menuItem.isChecked = true
                     }
                 }
+                R.id.nav_account -> {
+                    if (loggedInUser == null) {
+                        Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show()
+                    } else {
+                        findViewById<View>(R.id.catalog_container).visibility = View.GONE
+                        findViewById<View>(R.id.fragment_container).visibility = View.VISIBLE
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, AccountFragment.newInstance(loggedInUser!!))
+                            .commit()
+                        menuItem.isChecked = true
+                    }
+                }
             }
             drawerLayout.closeDrawer(GravityCompat.END)
             true

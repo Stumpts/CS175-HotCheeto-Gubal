@@ -22,6 +22,14 @@
     <string name="menu_item_search">Item Search</string>
     <string name="menu_login">Log In</string>
     <string name="menu_logout">Log Out</string>
+    <string name="menu_account">My Account</string>
+    <string name="account_title">My Account</string>
+    <string name="account_checkouts_title">Current Checkouts</string>
+    <string name="account_empty_checkouts">No current checkouts.</string>
+    <string name="account_member_label">Library member</string>
+    <string name="checkout_date_label">Checked out</string>
+    <string name="due_date_label">Due date</string>
+    <string name="return_book">Return Book</string>
     <string name="create_account">Create Account</string>
     <string name="email_field_hint">Enter email</string>
     <string name="back_to_login">Back to Login</string>
