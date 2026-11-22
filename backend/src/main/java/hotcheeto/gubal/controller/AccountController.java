@@ -35,6 +35,11 @@ public class AccountController {
                     .body(Map.of("error", "Username is already taken."));
         }
 
+        if (accountRepo.existsByEmail(request.email())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Email is already in use."));
+        }
+
         Account newAccount = Account.builder()
                 .username(request.username())
                 .email(request.email())

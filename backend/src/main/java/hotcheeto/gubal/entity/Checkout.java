@@ -14,19 +14,22 @@ import java.util.Date;
 public class Checkout {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long checkout_id;
+    @Column(name = "checkout_id")
+    private Long id;
 
-    @Column(nullable = false)
-    private Book book_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_id", nullable = false)
+    private BookCopy book;
 
-    @Column(nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "account_id", nullable = false)
     private Account borrower;
 
-    @Column(nullable = false)
-    private Date checkout_date;
+    @Column(name = "checkout_date", nullable = false)
+    private Date checkoutDate;
 
-    @Column(nullable = false)
-    private Date due_date;
+    @Column(name = "due_date", nullable = false)
+    private Date dueDate;
 
     @Column
     private Date returned;

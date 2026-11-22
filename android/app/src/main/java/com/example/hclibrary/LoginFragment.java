@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 
 public class LoginFragment extends Fragment {
 
-    private static final String BASE_URL = "http://10.0.2.2:8080";
     private static final String ARG_USERNAME = "param1";
     private static final String ARG_PASSWORD = "param2";
 
@@ -95,11 +94,13 @@ public class LoginFragment extends Fragment {
         new Thread(() -> {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL(BASE_URL + endpointPath);
+                URL url = new URL(BuildConfig.BASE_URL + endpointPath);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
                 conn.setDoOutput(true);
 
                 JSONObject jsonBody = new JSONObject();

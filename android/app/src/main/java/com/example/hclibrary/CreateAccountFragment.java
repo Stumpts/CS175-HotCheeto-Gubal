@@ -22,8 +22,6 @@ import java.nio.charset.StandardCharsets;
 
 public class CreateAccountFragment extends Fragment {
 
-    private static final String BASE_URL = "http://10.0.2.2:8080";
-
     public CreateAccountFragment() {
         // Required empty public constructor
     }
@@ -64,11 +62,13 @@ public class CreateAccountFragment extends Fragment {
         new Thread(() -> {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL(BASE_URL + "/api/accounts/register");
+                URL url = new URL(BuildConfig.BASE_URL + "/api/accounts/register");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
                 conn.setDoOutput(true);
 
                 JSONObject jsonBody = new JSONObject();

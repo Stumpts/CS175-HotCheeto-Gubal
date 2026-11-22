@@ -40,8 +40,6 @@ class MainActivity : AppCompatActivity() {
     )
 
     companion object {
-        private const val BASE_URL = "http://10.0.2.2:8080"
-
         // Catalog data populated from backend (with initial fallback items).
         val books = mutableListOf(
             Book("The Great Gatsby", "F. Scott Fitzgerald", true, "E0:04:01:00:1A:2B"),
@@ -84,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         // Set up the right-side navigation drawer and menu button.
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.menu.findItem(R.id.nav_account)?.isVisible = loggedInUser != null
         val menuButton = findViewById<ImageButton>(R.id.menu_button)
 
         menuButton.setOnClickListener {
@@ -173,6 +172,7 @@ class MainActivity : AppCompatActivity() {
         loggedInUser = username
         findViewById<TextView>(R.id.user_status_text).text = username
         val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.menu.findItem(R.id.nav_account)?.isVisible = true
         navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_logout)
         navView.setCheckedItem(R.id.nav_search)
         showCatalogPage()
@@ -182,6 +182,7 @@ class MainActivity : AppCompatActivity() {
         loggedInUser = null
         findViewById<TextView>(R.id.user_status_text).text = "Guest"
         val navView = findViewById<NavigationView>(R.id.nav_view)
+        navView.menu.findItem(R.id.nav_account)?.isVisible = false
         navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_login)
         navView.setCheckedItem(R.id.nav_search)
         showCatalogPage()
@@ -207,7 +208,7 @@ class MainActivity : AppCompatActivity() {
             var conn: HttpURLConnection? = null
             try {
                 val encodedQuery = URLEncoder.encode(query.trim(), "UTF-8")
-                val url = URL("$BASE_URL/api/books/search?type=$type&query=$encodedQuery")
+                val url = URL("${BuildConfig.BASE_URL}/api/books/search?type=$type&query=$encodedQuery")
                 conn = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     setRequestProperty("Accept", "application/json")
