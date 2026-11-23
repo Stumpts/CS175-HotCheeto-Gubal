@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/group_main"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_account"
             android:title="@string/menu_account"
@@ -9,6 +11,27 @@
             android:id="@+id/nav_search"
             android:checked="true"
             android:title="@string/menu_item_search" />
+    </group>
+
+    <item
+        android:id="@+id/nav_employee_section"
+        android:title="@string/menu_employee_section"
+        android:visible="false">
+        <menu>
+            <group
+                android:id="@+id/group_employee"
+                android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_employee_circulation"
+                    android:checkable="true"
+                    android:title="@string/menu_employee_circulation" />
+            </group>
+        </menu>
+    </item>
+
+    <group
+        android:id="@+id/group_auth"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_login"
             android:title="@string/menu_login" />

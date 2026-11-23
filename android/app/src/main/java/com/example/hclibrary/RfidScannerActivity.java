@@ -26,15 +26,28 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
 public class RfidScannerActivity extends AppCompatActivity implements NfcAdapter.ReaderCallback {
 
     public static final String EXTRA_SEARCH_QUERY = "extra_search_query";
+    public static final String EXTRA_IS_EMPLOYEE = "extra_is_employee";
+    public static final String EXTRA_EMPLOYEE_USERNAME = "extra_employee_username";
 
     @Nullable
     private NfcAdapter nfcAdapter;
+    private boolean isEmployee = false;
+    @Nullable
+    private String employeeUsername;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,6 +59,9 @@ public class RfidScannerActivity extends AppCompatActivity implements NfcAdapter
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        isEmployee = getIntent().getBooleanExtra(EXTRA_IS_EMPLOYEE, false);
+        employeeUsername = getIntent().getStringExtra(EXTRA_EMPLOYEE_USERNAME);
 
         LinearLayout statusCard = findViewById(R.id.scanner_status_card);
         statusCard.setBackground(createCardDrawable());
@@ -205,16 +221,13 @@ public class RfidScannerActivity extends AppCompatActivity implements NfcAdapter
             authorView.setText(targetBook.getAuthor());
             updateBookActionViews(targetBook, statusView, toggleButton);
 
-            toggleButton.setVisibility(View.VISIBLE);
-            toggleButton.setOnClickListener(v -> {
-                targetBook.setAvailable(!targetBook.getAvailable());
-                String actionMsg = targetBook.getAvailable()
-                        ? "Checked in \"" + targetBook.getTitle() + "\""
-                        : "Checked out \"" + targetBook.getTitle() + "\"";
-                Toast.makeText(this, actionMsg, Toast.LENGTH_SHORT).show();
-                updateBookActionViews(targetBook, statusView, toggleButton);
-                renderSampleTagButtons();
-            });
+            if (isEmployee && employeeUsername != null && !employeeUsername.isEmpty()) {
+                toggleButton.setVisibility(View.VISIBLE);
+                toggleButton.setOnClickListener(v ->
+                        sendCirculationToggle(targetBook, statusView, toggleButton));
+            } else {
+                toggleButton.setVisibility(View.GONE);
+            }
 
             searchButton.setVisibility(View.VISIBLE);
             searchButton.setOnClickListener(v -> {
@@ -231,6 +244,73 @@ public class RfidScannerActivity extends AppCompatActivity implements NfcAdapter
             toggleButton.setVisibility(View.GONE);
             searchButton.setVisibility(View.GONE);
         }
+    }
+
+    private void sendCirculationToggle(
+            MainActivity.Book targetBook,
+            TextView statusView,
+            Button toggleButton
+    ) {
+        boolean checkout = targetBook.getAvailable();
+        toggleButton.setEnabled(false);
+
+        new Thread(() -> {
+            HttpURLConnection conn = null;
+            try {
+                String endpoint = checkout ? "/api/checkouts/checkout" : "/api/checkouts/checkin";
+                URL url = new URL(ApiConfig.getBaseUrl() + endpoint);
+                conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                conn.setRequestProperty("Accept", "application/json");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setDoOutput(true);
+
+                JSONObject payload = new JSONObject();
+                payload.put("employeeUsername", employeeUsername);
+                payload.put("barcode", targetBook.getRfidTag());
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+                }
+
+                int code = conn.getResponseCode();
+                boolean success = code >= 200 && code < 300;
+                InputStream stream = success ? conn.getInputStream() : conn.getErrorStream();
+                StringBuilder sb = new StringBuilder();
+                if (stream != null) {
+                    try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                    }
+                }
+                JSONObject json = sb.length() == 0 ? new JSONObject() : new JSONObject(sb.toString());
+                String msg = json.optString(success ? "message" : "error",
+                        success ? (checkout ? "Checked out" : "Checked in") : "Error (" + code + ")");
+
+                runOnUiThread(() -> {
+                    toggleButton.setEnabled(true);
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                    if (success) {
+                        targetBook.setAvailable(!checkout);
+                        updateBookActionViews(targetBook, statusView, toggleButton);
+                        renderSampleTagButtons();
+                    }
+                });
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    toggleButton.setEnabled(true);
+                    Toast.makeText(this, "Connection error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            } finally {
+                if (conn != null) {
+                    conn.disconnect();
+                }
+            }
+        }).start();
     }
 
     private void updateBookActionViews(

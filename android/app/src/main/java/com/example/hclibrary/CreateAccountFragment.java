@@ -62,7 +62,7 @@ public class CreateAccountFragment extends Fragment {
         new Thread(() -> {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL(BuildConfig.BASE_URL + "/api/accounts/register");
+                URL url = new URL(ApiConfig.getBaseUrl() + "/api/accounts/register");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");

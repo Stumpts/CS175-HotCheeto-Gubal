@@ -33,24 +33,27 @@ public class SampleDataSeeder implements CommandLineRunner {
     }
 
     private void seedAccounts() {
-        if (accountRepo.count() > 0) {
-            return;
+        if (!accountRepo.existsByUsername("reader") && !accountRepo.existsByEmail("reader@gubal.lib")) {
+            accountRepo.save(
+                    Account.builder()
+                            .username("reader")
+                            .email("reader@gubal.lib")
+                            .passwordHash("password123")
+                            .role(Account.Role.BORROWER)
+                            .build()
+            );
         }
 
-        accountRepo.saveAll(List.of(
-                Account.builder()
-                        .username("reader")
-                        .email("reader@gubal.lib")
-                        .passwordHash("password123")
-                        .role(Account.Role.BORROWER)
-                        .build(),
-                Account.builder()
-                        .username("librarian")
-                        .email("librarian@gubal.lib")
-                        .passwordHash("admin123")
-                        .role(Account.Role.EMPLOYEE)
-                        .build()
-        ));
+        if (!accountRepo.existsByUsername("librarian") && !accountRepo.existsByEmail("librarian@gubal.lib")) {
+            accountRepo.save(
+                    Account.builder()
+                            .username("librarian")
+                            .email("librarian@gubal.lib")
+                            .passwordHash("admin123")
+                            .role(Account.Role.EMPLOYEE)
+                            .build()
+            );
+        }
     }
 
     private void seedBooksAndCopies() {

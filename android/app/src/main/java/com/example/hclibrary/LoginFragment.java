@@ -94,7 +94,7 @@ public class LoginFragment extends Fragment {
         new Thread(() -> {
             HttpURLConnection conn = null;
             try {
-                URL url = new URL(BuildConfig.BASE_URL + endpointPath);
+                URL url = new URL(ApiConfig.getBaseUrl() + endpointPath);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
@@ -135,12 +135,13 @@ public class LoginFragment extends Fragment {
                         "Status code: " + responseCode
                 );
                 String returnedUsername = resJson.optString("username", user);
+                String returnedRole = resJson.optString("role", "BORROWER");
 
                 if (isAdded()) {
                     requireActivity().runOnUiThread(() -> {
                         Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                         if (isSuccess && getActivity() instanceof MainActivity) {
-                            ((MainActivity) getActivity()).onLoginSuccess(returnedUsername);
+                            ((MainActivity) getActivity()).onLoginSuccess(returnedUsername, returnedRole);
                         }
                     });
                 }

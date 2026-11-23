@@ -22,7 +22,16 @@ public class BookCopy {
     @JoinColumn(nullable = false, name = "book_id")
     private Book book;
 
-    enum availability {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "availability")
+    @Builder.Default
+    private Availability availability = Availability.AVAILABLE;
+
+    public Availability getEffectiveAvailability() {
+        return availability != null ? availability : Availability.AVAILABLE;
+    }
+
+    public enum Availability {
         AVAILABLE,
         CHECKED_OUT,
         MISSING,

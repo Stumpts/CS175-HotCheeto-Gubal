@@ -36,22 +36,29 @@ class MainActivity : AppCompatActivity() {
         val title: String,
         val author: String,
         var available: Boolean,
-        val rfidTag: String
+        val rfidTag: String,
+        val isbn: String = "",
+        val copyCount: Int = 1,
+        val availableCount: Int = if (available) 1 else 0
     )
 
     companion object {
         // Catalog data populated from backend (with initial fallback items).
         val books = mutableListOf(
-            Book("The Great Gatsby", "F. Scott Fitzgerald", true, "E0:04:01:00:1A:2B"),
-            Book("To Kill a Mockingbird", "Harper Lee", true, "E0:04:01:00:3C:4D"),
-            Book("The Hobbit", "J.R.R. Tolkien", false, "E0:04:01:00:5E:6F"),
-            Book("Pride and Prejudice", "Jane Austen", true, "E0:04:01:00:7A:8B"),
-            Book("1984", "George Orwell", true, "E0:04:01:00:9C:0D"),
-            Book("The Alchemist", "Paulo Coelho", false, "E0:04:01:00:1E:2F")
+            Book("The Great Gatsby", "F. Scott Fitzgerald", true, "E0:04:01:00:1A:2B", "9780743273565"),
+            Book("To Kill a Mockingbird", "Harper Lee", true, "E0:04:01:00:3C:4D", "9780061120084"),
+            Book("The Hobbit", "J.R.R. Tolkien", false, "E0:04:01:00:5E:6F", "9780547928227"),
+            Book("Pride and Prejudice", "Jane Austen", true, "E0:04:01:00:7A:8B", "9780141439518"),
+            Book("1984", "George Orwell", true, "E0:04:01:00:9C:0D", "9780451524935"),
+            Book("The Alchemist", "Paulo Coelho", false, "E0:04:01:00:1E:2F", "9780062315007")
         )
     }
 
     private var loggedInUser: String? = null
+    private var loggedInRole: String? = null
+    private val isEmployee: Boolean
+        get() = loggedInRole.equals("EMPLOYEE", ignoreCase = true)
+
     private val searchCategories = listOf("Title", "Author", "ISBN")
 
     private val rfidScannerLauncher = registerForActivityResult(
@@ -82,7 +89,7 @@ class MainActivity : AppCompatActivity() {
         // Set up the right-side navigation drawer and menu button.
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navView = findViewById<NavigationView>(R.id.nav_view)
-        navView.menu.findItem(R.id.nav_account)?.isVisible = loggedInUser != null
+        updateNavigationMenuVisibility(navView)
         val menuButton = findViewById<ImageButton>(R.id.menu_button)
 
         menuButton.setOnClickListener {
@@ -93,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             when (menuItem.itemId) {
                 R.id.nav_search -> {
                     showCatalogPage()
-                    menuItem.isChecked = true
+                    setActiveDrawerItem(navView, R.id.nav_search)
                 }
                 R.id.nav_login -> {
                     if (loggedInUser != null) {
@@ -104,7 +111,7 @@ class MainActivity : AppCompatActivity() {
                         supportFragmentManager.beginTransaction()
                             .replace(R.id.fragment_container, LoginFragment())
                             .commit()
-                        menuItem.isChecked = true
+                        setActiveDrawerItem(navView, R.id.nav_login)
                     }
                 }
                 R.id.nav_account -> {
@@ -114,9 +121,19 @@ class MainActivity : AppCompatActivity() {
                         findViewById<View>(R.id.catalog_container).visibility = View.GONE
                         findViewById<View>(R.id.fragment_container).visibility = View.VISIBLE
                         supportFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_container, AccountFragment.newInstance(loggedInUser!!))
+                            .replace(
+                                R.id.fragment_container,
+                                AccountFragment.newInstance(loggedInUser!!, loggedInRole ?: "BORROWER")
+                            )
                             .commit()
-                        menuItem.isChecked = true
+                        setActiveDrawerItem(navView, R.id.nav_account)
+                    }
+                }
+                R.id.nav_employee_circulation -> {
+                    if (!isEmployee || loggedInUser == null) {
+                        Toast.makeText(this, "Employee privileges are required", Toast.LENGTH_SHORT).show()
+                    } else {
+                        openEmployeeCirculation(null)
                     }
                 }
             }
@@ -126,7 +143,10 @@ class MainActivity : AppCompatActivity() {
 
         // Open the RFID Scanner menu when the button is clicked.
         findViewById<Button>(R.id.open_rfid_scanner_button).setOnClickListener {
-            val intent = Intent(this, RfidScannerActivity::class.java)
+            val intent = Intent(this, RfidScannerActivity::class.java).apply {
+                putExtra(RfidScannerActivity.EXTRA_IS_EMPLOYEE, isEmployee)
+                putExtra(RfidScannerActivity.EXTRA_EMPLOYEE_USERNAME, loggedInUser)
+            }
             rfidScannerLauncher.launch(intent)
         }
 
@@ -164,29 +184,68 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        refreshCatalog()
+    }
+
+    fun refreshCatalog() {
         val searchInput = findViewById<EditText>(R.id.search_input)
         fetchBooksFromBackend(searchInput?.text?.toString().orEmpty())
     }
 
-    fun onLoginSuccess(username: String) {
+    @JvmOverloads
+    fun onLoginSuccess(username: String, role: String = "BORROWER") {
         loggedInUser = username
-        findViewById<TextView>(R.id.user_status_text).text = username
+        loggedInRole = role
+        findViewById<TextView>(R.id.user_status_text).text =
+            if (isEmployee) "$username (Employee)" else username
         val navView = findViewById<NavigationView>(R.id.nav_view)
-        navView.menu.findItem(R.id.nav_account)?.isVisible = true
+        updateNavigationMenuVisibility(navView)
         navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_logout)
-        navView.setCheckedItem(R.id.nav_search)
+        setActiveDrawerItem(navView, R.id.nav_search)
         showCatalogPage()
     }
 
     private fun onLogout() {
         loggedInUser = null
+        loggedInRole = null
         findViewById<TextView>(R.id.user_status_text).text = "Guest"
         val navView = findViewById<NavigationView>(R.id.nav_view)
-        navView.menu.findItem(R.id.nav_account)?.isVisible = false
+        updateNavigationMenuVisibility(navView)
         navView.menu.findItem(R.id.nav_login)?.title = getString(R.string.menu_login)
-        navView.setCheckedItem(R.id.nav_search)
+        setActiveDrawerItem(navView, R.id.nav_search)
         showCatalogPage()
         Toast.makeText(this, "Logged out", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateNavigationMenuVisibility(navView: NavigationView) {
+        navView.menu.findItem(R.id.nav_account)?.isVisible = loggedInUser != null
+        navView.menu.findItem(R.id.nav_employee_section)?.isVisible = isEmployee
+    }
+
+    private fun setActiveDrawerItem(navView: NavigationView, activeItemId: Int) {
+        val allIds = listOf(
+            R.id.nav_account,
+            R.id.nav_search,
+            R.id.nav_employee_circulation,
+            R.id.nav_login
+        )
+        allIds.forEach { id ->
+            navView.menu.findItem(id)?.isChecked = (id == activeItemId)
+        }
+    }
+
+    private fun openEmployeeCirculation(initialBarcode: String?) {
+        val employee = loggedInUser ?: return
+        findViewById<View>(R.id.catalog_container).visibility = View.GONE
+        findViewById<View>(R.id.fragment_container).visibility = View.VISIBLE
+        supportFragmentManager.beginTransaction()
+            .replace(
+                R.id.fragment_container,
+                EmployeeCirculationFragment.newInstance(employee, initialBarcode)
+            )
+            .commit()
+        val navView = findViewById<NavigationView>(R.id.nav_view)
+        setActiveDrawerItem(navView, R.id.nav_employee_circulation)
     }
 
     private fun showCatalogPage() {
@@ -195,6 +254,7 @@ class MainActivity : AppCompatActivity() {
         supportFragmentManager.findFragmentById(R.id.fragment_container)?.let {
             supportFragmentManager.beginTransaction().remove(it).commit()
         }
+        refreshCatalog()
     }
 
     private fun getSelectedSearchType(): String {
@@ -208,7 +268,7 @@ class MainActivity : AppCompatActivity() {
             var conn: HttpURLConnection? = null
             try {
                 val encodedQuery = URLEncoder.encode(query.trim(), "UTF-8")
-                val url = URL("${BuildConfig.BASE_URL}/api/books/search?type=$type&query=$encodedQuery")
+                val url = URL("${ApiConfig.getBaseUrl()}/api/books/search?type=$type&query=$encodedQuery")
                 conn = (url.openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
                     setRequestProperty("Accept", "application/json")
@@ -221,12 +281,24 @@ class MainActivity : AppCompatActivity() {
                     val fetchedBooks = mutableListOf<Book>()
                     for (i in 0 until jsonArray.length()) {
                         val obj = jsonArray.getJSONObject(i)
+                        val copyCount = obj.optInt("copyCount", 1)
+                        val availableCount = obj.optInt("availableCount", copyCount)
+                        val isbn = obj.optString("isbn", "")
+                        val barcodes = obj.optJSONArray("barcodes")
+                        val primaryTag = if (barcodes != null && barcodes.length() > 0) {
+                            barcodes.optString(0, isbn)
+                        } else {
+                            isbn
+                        }
                         fetchedBooks.add(
                             Book(
                                 title = obj.optString("title"),
                                 author = obj.optString("author"),
-                                available = obj.optInt("copyCount", 1) >= 0,
-                                rfidTag = obj.optString("isbn")
+                                available = availableCount > 0,
+                                rfidTag = primaryTag,
+                                isbn = isbn,
+                                copyCount = copyCount,
+                                availableCount = availableCount
                             )
                         )
                     }
@@ -254,7 +326,8 @@ class MainActivity : AppCompatActivity() {
             books.filter { book ->
                 when (type) {
                     "author" -> book.author.lowercase().contains(normalized)
-                    "isbn" -> book.rfidTag.lowercase().contains(normalized)
+                    "isbn" -> book.isbn.lowercase().contains(normalized) ||
+                            book.rfidTag.lowercase().contains(normalized)
                     else -> book.title.lowercase().contains(normalized)
                 }
             }
@@ -301,8 +374,14 @@ class MainActivity : AppCompatActivity() {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER_VERTICAL
             }
+            val statusLabel = when {
+                book.available && book.copyCount > 1 ->
+                    "● Available (${book.availableCount}/${book.copyCount})"
+                book.available -> "● Available"
+                else -> "● Checked out"
+            }
             val status = TextView(this).apply {
-                text = if (book.available) "● Available" else "● Checked out"
+                text = statusLabel
                 textSize = 13f
                 setTextColor(ContextCompat.getColor(
                     this@MainActivity,
@@ -310,16 +389,19 @@ class MainActivity : AppCompatActivity() {
                 ))
                 layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
             }
-            val button = Button(this).apply {
-                text = if (book.available) "Check Out" else "Check In"
-                setOnClickListener {
-                    // Toggle the selected book between checked out and checked in.
-                    book.available = !book.available
-                    renderBooks(bookItems)
-                }
-            }
             bottomRow.addView(status)
-            bottomRow.addView(button)
+
+            if (isEmployee) {
+                val button = Button(this).apply {
+                    text = if (book.available) "Check Out" else "Check In"
+                    isAllCaps = false
+                    setOnClickListener {
+                        openEmployeeCirculation(book.rfidTag)
+                    }
+                }
+                bottomRow.addView(button)
+            }
+
             card.addView(title)
             card.addView(author)
             card.addView(bottomRow)
